@@ -3,6 +3,7 @@ package orderbook
 import (
 	"container/list"
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -14,6 +15,8 @@ type OrderBook struct {
 
 	asks *OrderSide
 	bids *OrderSide
+
+	lock sync.Mutex
 }
 
 // NewOrderBook creates Orderbook object
@@ -33,18 +36,21 @@ type PriceLevel struct {
 
 // ProcessMarketOrder immediately gets definite quantity from the order book with market price
 // Arguments:
-//      side     - what do you want to do (ob.Sell or ob.Buy)
-//      quantity - how much quantity you want to sell or buy
-//      * to create new decimal number you should use decimal.New() func
-//        read more at https://github.com/shopspring/decimal
+//
+//	side     - what do you want to do (ob.Sell or ob.Buy)
+//	quantity - how much quantity you want to sell or buy
+//	* to create new decimal number you should use decimal.New() func
+//	  read more at https://github.com/shopspring/decimal
+//
 // Return:
-//      error        - not nil if price is less or equal 0
-//      done         - not nil if your market order produces ends of anoter orders, this order will add to
-//                     the "done" slice
-//      partial      - not nil if your order has done but top order is not fully done
-//      partialQuantityProcessed - if partial order is not nil this result contains processed quatity from partial order
-//      quantityLeft - more than zero if it is not enought orders to process all quantity
-func (ob *OrderBook) CalculatePriceAfterExecution(side Side,quantity decimal.Decimal) (price decimal.Decimal, err error) {
+//
+//	error        - not nil if price is less or equal 0
+//	done         - not nil if your market order produces ends of anoter orders, this order will add to
+//	               the "done" slice
+//	partial      - not nil if your order has done but top order is not fully done
+//	partialQuantityProcessed - if partial order is not nil this result contains processed quatity from partial order
+//	quantityLeft - more than zero if it is not enought orders to process all quantity
+func (ob *OrderBook) CalculatePriceAfterExecution(side Side, quantity decimal.Decimal) (price decimal.Decimal, err error) {
 	price = decimal.Zero
 
 	var (
@@ -54,7 +60,7 @@ func (ob *OrderBook) CalculatePriceAfterExecution(side Side,quantity decimal.Dec
 	if side == Buy {
 		level = ob.asks.MinPriceQueue()
 		iter = ob.asks.GreaterThan
-	}	else {
+	} else {
 		level = ob.bids.MaxPriceQueue()
 		iter = ob.bids.LessThan
 	}
@@ -73,12 +79,7 @@ func (ob *OrderBook) CalculatePriceAfterExecution(side Side,quantity decimal.Dec
 
 	return
 
-
 }
-
-
-
-
 
 func (ob *OrderBook) ProcessMarketOrder(side Side, quantity decimal.Decimal) (done []*Order, partial *Order, partialQuantityProcessed, quantityLeft decimal.Decimal, err error) {
 	if quantity.Sign() <= 0 {
@@ -113,21 +114,26 @@ func (ob *OrderBook) ProcessMarketOrder(side Side, quantity decimal.Decimal) (do
 
 // ProcessLimitOrder places new order to the OrderBook
 // Arguments:
-//      side     - what do you want to do (ob.Sell or ob.Buy)
-//      orderID  - unique order ID in depth
-//      quantity - how much quantity you want to sell or buy
-//      price    - no more expensive (or cheaper) this price
-//      * to create new decimal number you should use decimal.New() func
-//        read more at https://github.com/shopspring/decimal
+//
+//	side     - what do you want to do (ob.Sell or ob.Buy)
+//	orderID  - unique order ID in depth
+//	quantity - how much quantity you want to sell or buy
+//	price    - no more expensive (or cheaper) this price
+//	* to create new decimal number you should use decimal.New() func
+//	  read more at https://github.com/shopspring/decimal
+//
 // Return:
-//      error   - not nil if quantity (or price) is less or equal 0. Or if order with given ID is exists
-//      done    - not nil if your order produces ends of another order, this order will add to
-//                the "done" slice. If your order have done too, it will be places to this array too
-//      partial - not nil if your order has done but top order is not fully done. Or if your order is
-//                partial done and placed to the orderbook without full quantity - partial will contain
-//                your order with quantity to left
-//      partialQuantityProcessed - if partial order is not nil this result contains processed quantity from partial order
+//
+//	error   - not nil if quantity (or price) is less or equal 0. Or if order with given ID is exists
+//	done    - not nil if your order produces ends of another order, this order will add to
+//	          the "done" slice. If your order have done too, it will be places to this array too
+//	partial - not nil if your order has done but top order is not fully done. Or if your order is
+//	          partial done and placed to the orderbook without full quantity - partial will contain
+//	          your order with quantity to left
+//	partialQuantityProcessed - if partial order is not nil this result contains processed quantity from partial order
 func (ob *OrderBook) ProcessLimitOrder(side Side, orderID string, quantity, price decimal.Decimal) (done []*Order, partial *Order, partialQuantityProcessed decimal.Decimal, err error) {
+	ob.lock.Lock()
+	defer ob.lock.Unlock()
 	if _, ok := ob.orders[orderID]; ok {
 		return nil, nil, decimal.Zero, ErrOrderExists
 	}
@@ -265,10 +271,9 @@ func (ob *OrderBook) CancelOrder(orderID string) *Order {
 	return ob.asks.Remove(e)
 }
 
-
 // CalculateMarketPrice returns total market price for requested quantity
 // if err is not nil price returns total price of all levels in side
-func (ob *OrderBook) CalculateMarketPrice(side Side, quantity decimal.Decimal) (price decimal.Decimal,quant decimal.Decimal, err error) {
+func (ob *OrderBook) CalculateMarketPrice(side Side, quantity decimal.Decimal) (price decimal.Decimal, quant decimal.Decimal, err error) {
 	price = decimal.Zero
 	quant = decimal.Zero
 	var (
@@ -297,7 +302,7 @@ func (ob *OrderBook) CalculateMarketPrice(side Side, quantity decimal.Decimal) (
 			quant = quant.Add(quantity)
 			quantity = decimal.Zero
 		}
-	} 
+	}
 	if quantity.Sign() > 0 {
 		err = ErrInsufficientQuantity
 	}
