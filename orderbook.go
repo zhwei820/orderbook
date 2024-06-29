@@ -45,11 +45,11 @@ type PriceLevel struct {
 // Return:
 //
 //	error        - not nil if price is less or equal 0
-//	done         - not nil if your market order produces ends of anoter orders, this order will add to
+//	done         - not nil if your market order produces ends of another orders, this order will add to
 //	               the "done" slice
 //	partial      - not nil if your order has done but top order is not fully done
-//	partialQuantityProcessed - if partial order is not nil this result contains processed quatity from partial order
-//	quantityLeft - more than zero if it is not enought orders to process all quantity
+//	partialQuantityProcessed - if partial order is not nil this result contains processed quantity from partial order
+//	quantityLeft - more than zero if it is not enough orders to process all quantity
 func (ob *OrderBook) CalculatePriceAfterExecution(side Side, quantity decimal.Decimal) (price decimal.Decimal, err error) {
 	price = decimal.Zero
 
