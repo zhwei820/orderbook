@@ -19,7 +19,7 @@ func main() {
 
 func TestLimitPlace(ob *orderbook.OrderBook) {
 	quantity := decimal.New(2, 0)
-	N := 20
+	N := 2000
 	wg := sync.WaitGroup{}
 	wg.Add(N * 2)
 	t := time.Now()
