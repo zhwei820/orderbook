@@ -298,3 +298,4 @@ func BenchmarkLimitOrder(b *testing.B) {
 	elapsed := time.Since(stopwatch)
 	fmt.Printf("\n\nElapsed: %s\nTransactions per second (avg): %f\n", elapsed, float64(b.N*32)/elapsed.Seconds())
 }
+
