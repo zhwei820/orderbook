@@ -68,11 +68,11 @@ func TestLimitPlace(ob *orderbook.OrderBook) {
 	}
 	wg.Wait()
 
-	gap := time.Now().Sub(t) / time.Millisecond
+	gap := time.Now().Sub(t)
 
 	fmt.Println("\n===>>")
 	fmt.Println("NN: ", N*2*100)
-	fmt.Println("gap: ", gap, " ms")
+	fmt.Println("gap: ", gap)
 
 	fmt.Println("ob", gconv.Export(ob))
 
