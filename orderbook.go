@@ -121,12 +121,12 @@ func (ob *OrderBook) ProcessMarketOrder(side Side, quantity decimal.Decimal) (do
 //        read more at https://github.com/shopspring/decimal
 // Return:
 //      error   - not nil if quantity (or price) is less or equal 0. Or if order with given ID is exists
-//      done    - not nil if your order produces ends of anoter order, this order will add to
+//      done    - not nil if your order produces ends of another order, this order will add to
 //                the "done" slice. If your order have done too, it will be places to this array too
 //      partial - not nil if your order has done but top order is not fully done. Or if your order is
 //                partial done and placed to the orderbook without full quantity - partial will contain
 //                your order with quantity to left
-//      partialQuantityProcessed - if partial order is not nil this result contains processed quatity from partial order
+//      partialQuantityProcessed - if partial order is not nil this result contains processed quantity from partial order
 func (ob *OrderBook) ProcessLimitOrder(side Side, orderID string, quantity, price decimal.Decimal) (done []*Order, partial *Order, partialQuantityProcessed decimal.Decimal, err error) {
 	if _, ok := ob.orders[orderID]; ok {
 		return nil, nil, decimal.Zero, ErrOrderExists
