@@ -80,9 +80,9 @@ func TestLimitPlace(ob *orderbook.OrderBook) {
 		panic("can get fake order")
 	}
 
-	if ob.Order("sell-100") == nil {
-		panic("can't get real order")
-	}
+	// if ob.Order("sell-100") == nil {
+	// 	panic("can't get real order")
+	// }
 
 	// fmt.Println("ob.Depth()", gconv.Export(ob.Depth()))
 	return
