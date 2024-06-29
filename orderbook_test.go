@@ -240,19 +240,21 @@ func TestPriceCalculation(t *testing.T) {
 	addDepth(ob, "15-", decimal.New(10, 0))
 	t.Log(ob)
 
-	price, err := ob.CalculateMarketPrice(Buy, decimal.New(115, 0))
+	price, qty, err := ob.CalculateMarketPrice(Buy, decimal.New(115, 0))
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println("qty", qty)
 
 	if !price.Equal(decimal.New(13150, 0)) {
 		t.Fatal("invalid price", price)
 	}
 
-	price, err = ob.CalculateMarketPrice(Buy, decimal.New(200, 0))
+	price, qty, err = ob.CalculateMarketPrice(Buy, decimal.New(200, 0))
 	if err == nil {
 		t.Fatal("invalid quantity count")
 	}
+	fmt.Println("qty", qty)
 
 	if !price.Equal(decimal.New(18000, 0)) {
 		t.Fatal("invalid price", price)
@@ -260,19 +262,21 @@ func TestPriceCalculation(t *testing.T) {
 
 	// -------
 
-	price, err = ob.CalculateMarketPrice(Sell, decimal.New(115, 0))
+	price, qty, err = ob.CalculateMarketPrice(Sell, decimal.New(115, 0))
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println("qty", qty)
 
 	if !price.Equal(decimal.New(8700, 0)) {
 		t.Fatal("invalid price", price)
 	}
 
-	price, err = ob.CalculateMarketPrice(Sell, decimal.New(200, 0))
+	price, qty, err = ob.CalculateMarketPrice(Sell, decimal.New(200, 0))
 	if err == nil {
 		t.Fatal("invalid quantity count")
 	}
+	fmt.Println("qty", qty)
 
 	if !price.Equal(decimal.New(10500, 0)) {
 		t.Fatal("invalid price", price)
